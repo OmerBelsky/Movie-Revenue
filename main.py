@@ -64,7 +64,7 @@ def keep_train_words():
 
     w2v_model = KeyedVectors.load_word2vec_format("wiki-news-300d-1M-subword.vec", binary=False)
     features = ["original_title", "overview", "Keywords"]
-    data = pd.read_csv("train.tsv", sep="\t")[features]
+    data = pd.read_csv("data/train.tsv", sep="\t")[features]
 
     translator = str.maketrans({punc: None for punc in string.punctuation})
     words = set()
@@ -90,14 +90,13 @@ def create_clusters(w2v_dict, K=10):
 
 
 def main():
-
     """
     Feature engineering and some commented EDA.
     """
 
     start = time()
     features = ["revenue", "original_language", "spoken_languages", "belongs_to_collection", "original_title", "overview", "Keywords", "popularity", "vote_average", "vote_count", "cast", "crew", "release_date", "budget"]  # , "genres"]
-    data = pd.read_csv("train.tsv", sep="\t")[features]
+    data = pd.read_csv("data/train.tsv", sep="\t")[features]
     target = data["revenue"]
     # W2V_K = 10
     # translator = str.maketrans({punc: None for punc in string.punctuation})
@@ -139,7 +138,7 @@ def main():
     # Transform cast & crew
     #######################
 
-    award_data = pd.read_csv("oscars-demographics.csv", sep=";")
+    award_data = pd.read_csv("data/oscars-demographics.csv", sep=";")
     cast_awards = ["Best Supporting Actor", "Best Supporting Actress", "Best Actor", "Best Actress"]
     best_cast = set(award_data[award_data["Award"].isin(cast_awards)]["Person"])
     best_crew = set(award_data[~award_data["Award"].isin(cast_awards)]["Person"])

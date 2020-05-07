@@ -14,7 +14,7 @@ from main import get_count_occur, important_words
 
 def make_model():
     features = ["revenue", "original_language", "spoken_languages", "belongs_to_collection", "original_title", "overview", "Keywords", "popularity", "vote_average", "vote_count", "cast", "crew", "release_date", "budget"]  # , "genres"]
-    data = pd.read_csv("train.tsv", sep="\t")[features]
+    data = pd.read_csv("data/train.tsv", sep="\t")[features]
     target = data["revenue"]
 
     ###############
@@ -40,7 +40,7 @@ def make_model():
     # Transform cast & crew
     #######################
 
-    award_data = pd.read_csv("oscars-demographics.csv", sep=";")
+    award_data = pd.read_csv("data/oscars-demographics.csv", sep=";")
     cast_awards = ["Best Supporting Actor", "Best Supporting Actress", "Best Actor", "Best Actress"]
     best_cast = set(award_data[award_data["Award"].isin(cast_awards)]["Person"])
     best_crew = set(award_data[~award_data["Award"].isin(cast_awards)]["Person"])
@@ -90,13 +90,13 @@ def make_model():
     # tfidf
     tfidf = TfidfVectorizer(decode_error="ignore", strip_accents="unicode")
     tfidf.fit(data["original_title"])
-    with open("original_title_tfidf.pkl", 'wb') as f:
+    with open("text_transformers/original_title_tfidf.pkl", 'wb') as f:
         pickle.dump(tfidf, f, pickle.HIGHEST_PROTOCOL)
 
     # get important words, transform train.
     X_words = tfidf.transform(data["original_title"])
     i_words = important_words(X_words, target)
-    with open("original_title_i_words.pkl", 'wb') as f:
+    with open("text_transformers/original_title_i_words.pkl", 'wb') as f:
         pickle.dump(i_words, f, pickle.HIGHEST_PROTOCOL)
     word_list = tfidf.get_feature_names()
     word_df = pd.DataFrame(X_words[:, i_words].toarray(), columns=["original_title__" + word_list[i] for i in i_words], index=data.index)
@@ -111,13 +111,13 @@ def make_model():
     # tfidf
     tfidf = TfidfVectorizer(decode_error="ignore", strip_accents="unicode")
     tfidf.fit(data["overview"])
-    with open("overview_tfidf.pkl", 'wb') as f:
+    with open("text_transformers/overview_tfidf.pkl", 'wb') as f:
         pickle.dump(tfidf, f, pickle.HIGHEST_PROTOCOL)
 
     # get important words, transform train.
     X_words = tfidf.transform(data["overview"])
     i_words = important_words(X_words, target)
-    with open("overview_i_words.pkl", 'wb') as f:
+    with open("text_transformers/overview_i_words.pkl", 'wb') as f:
         pickle.dump(i_words, f, pickle.HIGHEST_PROTOCOL)
     word_list = tfidf.get_feature_names()
     word_df = pd.DataFrame(X_words[:, i_words].toarray(), columns=["overview__" + word_list[i] for i in i_words], index=data.index)
@@ -132,13 +132,13 @@ def make_model():
     # tfidf
     tfidf = TfidfVectorizer(decode_error="ignore", strip_accents="unicode")
     tfidf.fit(data["Keywords"])
-    with open("Keywords_tfidf.pkl", 'wb') as f:
+    with open("text_transformers/Keywords_tfidf.pkl", 'wb') as f:
         pickle.dump(tfidf, f, pickle.HIGHEST_PROTOCOL)
 
     # get important words, transform train.
     X_words = tfidf.transform(data["Keywords"])
     i_words = important_words(X_words, target)
-    with open("Keywords_i_words.pkl", 'wb') as f:
+    with open("text_transformers/Keywords_i_words.pkl", 'wb') as f:
         pickle.dump(i_words, f, pickle.HIGHEST_PROTOCOL)
     word_list = tfidf.get_feature_names()
     word_df = pd.DataFrame(X_words[:, i_words].toarray(), columns=["Keywords__" + word_list[i] for i in i_words], index=data.index)
@@ -152,7 +152,7 @@ def make_model():
 
     ohe = OneHotEncoder(sparse=False)
     ohe.fit(data[["release_season", "filtered_lang"]])
-    with open("text_ohe_transformer.pkl", 'wb') as f:
+    with open("text_transformers/text_ohe_transformer.pkl", 'wb') as f:
         pickle.dump(ohe, f, pickle.HIGHEST_PROTOCOL)
     data_ohe = pd.DataFrame(ohe.transform(data[["release_season", "filtered_lang"]]), columns=[col.replace("x0", "release_season_").replace("x1", "filtered_lang_") for col in ohe.get_feature_names()], index=data.index)
     data.drop(["release_season", "filtered_lang"], inplace=True, axis=1)

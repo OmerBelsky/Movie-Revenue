@@ -22,8 +22,6 @@ args = parser.parse_args()
 # Reading input TSV
 data = pd.read_csv(args.tsv_path, sep="\t")
 
-#####
-# TODO - your prediction code here
 features = ["revenue", "original_language", "spoken_languages", "belongs_to_collection", "original_title", "overview", "Keywords", "popularity", "vote_average", "vote_count", "cast", "crew", "release_date", "budget"]  # , "genres"]
 data = data.set_index("id")[features]
 target = data["revenue"]
@@ -58,7 +56,7 @@ data.drop("release_date", inplace=True, axis=1)
 # Transform cast & crew
 #######################
 
-award_data = pd.read_csv("oscars-demographics.csv", sep=";")
+award_data = pd.read_csv("data/oscars-demographics.csv", sep=";")
 cast_awards = ["Best Supporting Actor", "Best Supporting Actress", "Best Actor", "Best Actress"]
 best_cast = set(award_data[award_data["Award"].isin(cast_awards)]["Person"])
 best_crew = set(award_data[~award_data["Award"].isin(cast_awards)]["Person"])
@@ -103,13 +101,11 @@ data.drop("spoken_languages", inplace=True, axis=1)
 # Transform original_title
 ##########################
 
-# tfidf
-with open("original_title_tfidf.pkl", 'rb') as f:
+with open("text_transformers/original_title_tfidf.pkl", 'rb') as f:
     tfidf = pickle.load(f)
 
-# get important words, transform train.
 X_words = tfidf.transform(data["original_title"])
-with open("original_title_i_words.pkl", 'rb') as f:
+with open("text_transformers/original_title_i_words.pkl", 'rb') as f:
     i_words = pickle.load(f)
 word_list = tfidf.get_feature_names()
 word_df = pd.DataFrame(X_words[:, i_words].toarray(), columns=["original_title__" + word_list[i] for i in i_words], index=data.index)
@@ -121,13 +117,11 @@ data.drop("original_title", inplace=True, axis=1)
 # Transform overview
 ####################
 
-# tfidf
-with open("overview_tfidf.pkl", 'rb') as f:
+with open("text_transformers/overview_tfidf.pkl", 'rb') as f:
     tfidf = pickle.load(f)
 
-# get important words, transform train.
 X_words = tfidf.transform(data["overview"])
-with open("overview_i_words.pkl", 'rb') as f:
+with open("text_transformers/overview_i_words.pkl", 'rb') as f:
     i_words = pickle.load(f)
 word_list = tfidf.get_feature_names()
 word_df = pd.DataFrame(X_words[:, i_words].toarray(), columns=["overview__" + word_list[i] for i in i_words], index=data.index)
@@ -139,13 +133,11 @@ data.drop("overview", inplace=True, axis=1)
 # Transform Keywords
 ####################
 
-# tfidf
-with open("Keywords_tfidf.pkl", 'rb') as f:
+with open("text_transformers/Keywords_tfidf.pkl", 'rb') as f:
     tfidf = pickle.load(f)
 
-# get important words, transform train.
 X_words = tfidf.transform(data["Keywords"])
-with open("Keywords_i_words.pkl", 'rb') as f:
+with open("text_transformers/Keywords_i_words.pkl", 'rb') as f:
     i_words = pickle.load(f)
 word_list = tfidf.get_feature_names()
 word_df = pd.DataFrame(X_words[:, i_words].toarray(), columns=["Keywords__" + word_list[i] for i in i_words], index=data.index)
@@ -157,7 +149,7 @@ data.drop("Keywords", inplace=True, axis=1)
 # Model
 #######
 
-with open("text_ohe_transformer.pkl", 'rb') as f:
+with open("text_transformers/text_ohe_transformer.pkl", 'rb') as f:
     ohe = pickle.load(f)
 data_ohe = pd.DataFrame(ohe.transform(data[["release_season", "filtered_lang"]]), columns=[col.replace("x0", "release_season_").replace("x1", "filtered_lang_") for col in ohe.get_feature_names()], index=data.index)
 data.drop(["release_season", "filtered_lang"], inplace=True, axis=1)
@@ -167,10 +159,7 @@ with open("model.pkl", 'rb') as f:
     regressor = pickle.load(f)
 
 data["pred_xgb"] = regressor.predict(data)
-data["pred_xgb"].to_csv("predictions.csv")
-
-# TODO - How to export prediction results
-# prediction_df.to_csv("prediction.csv", index=False, header=False)
+data["pred_xgb"].to_csv("predictions.csv", header=False)
 
 
 # ### Utility function to calculate RMSLE
@@ -184,9 +173,5 @@ def rmsle(y_true, y_pred):
     assert y_true.shape == y_pred.shape, \
         ValueError("Mismatched dimensions between input vectors: {}, {}".format(y_true.shape, y_pred.shape))
     return np.sqrt((1/len(y_true)) * np.sum(np.power(np.log(y_true + 1) - np.log(y_pred + 1), 2)))
-#
-#
-# ### Example - Calculating RMSLE
-# res = rmsle(data['revenue'], prediction_df['revenue'])
-# print("RMSLE is: {:.6f}".format(res))
+
 
