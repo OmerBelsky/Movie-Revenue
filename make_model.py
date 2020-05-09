@@ -16,6 +16,9 @@ def make_model():
     features = ["revenue", "original_language", "spoken_languages", "belongs_to_collection", "original_title", "overview", "Keywords", "popularity", "vote_average", "vote_count", "cast", "crew", "release_date", "budget"]  # , "genres"]
     data = pd.read_csv("data/train.tsv", sep="\t")[features]
     target = data["revenue"]
+    normal_revenue_idx = np.where(target > 10000)[0]
+    data, target = data.iloc[normal_revenue_idx], target.iloc[normal_revenue_idx]
+    data.drop("revenue", axis=1, inplace=True)
 
     ###############
     # Preprocessing
@@ -79,9 +82,6 @@ def make_model():
 
     data["num_spoken"] = data['spoken_languages'].apply(lambda x: len(x))
     data.drop("spoken_languages", inplace=True, axis=1)
-
-    normal_revenue_idx = np.where(target > 10000)[0]
-    data, target = data.iloc[normal_revenue_idx], target.iloc[normal_revenue_idx]
 
     ##########################
     # Transform original_title

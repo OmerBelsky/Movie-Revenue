@@ -158,7 +158,7 @@ data = pd.concat([data, data_ohe], axis=1)
 with open("model.pkl", 'rb') as f:
     regressor = pickle.load(f)
 
-data["pred_xgb"] = regressor.predict(data)
+data["pred_xgb"] = regressor.predict(data.drop("revenue", axis=1))
 data["pred_xgb"] = data["pred_xgb"].clip(lower=0)
 data["pred_xgb"].to_csv("predictions.csv", header=False)
 
@@ -175,4 +175,4 @@ def rmsle(y_true, y_pred):
         ValueError("Mismatched dimensions between input vectors: {}, {}".format(y_true.shape, y_pred.shape))
     return np.sqrt((1/len(y_true)) * np.sum(np.power(np.log(y_true + 1) - np.log(y_pred + 1), 2)))
 
-
+print(rmsle(data["revenue"], data["pred_xgb"]))
