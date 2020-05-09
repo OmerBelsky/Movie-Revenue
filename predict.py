@@ -159,6 +159,7 @@ with open("model.pkl", 'rb') as f:
     regressor = pickle.load(f)
 
 data["pred_xgb"] = regressor.predict(data)
+data["pred_xgb"] = data["pred_xgb"].clip(lower=0)
 data["pred_xgb"].to_csv("predictions.csv", header=False)
 
 
